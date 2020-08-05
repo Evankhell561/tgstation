@@ -23,16 +23,18 @@
 	var/tox = . ? .[MOLES] : 0
 	. = air_gases[/datum/gas/tritium]
 	var/trit = . ? .[MOLES] : 0
+	. = air_gases[/datum/gas/hydrogen]
+	var/h2 = . ? .[MOLES] : 0
 	if(active_hotspot)
 		if(soh)
-			if(tox > 0.5 || trit > 0.5)
+			if(tox > 0.5 || trit > 0.5 || h2 > 0.5)
 				if(active_hotspot.temperature < exposed_temperature)
 					active_hotspot.temperature = exposed_temperature
 				if(active_hotspot.volume < exposed_volume)
 					active_hotspot.volume = exposed_volume
 		return
 
-	if((exposed_temperature > PLASMA_MINIMUM_BURN_TEMPERATURE) && (tox > 0.5 || trit > 0.5))
+	if((exposed_temperature > PLASMA_MINIMUM_BURN_TEMPERATURE) && (tox > 0.5 || trit > 0.5 || h2 > 0.5))
 
 		active_hotspot = new /obj/effect/hotspot(src, exposed_volume*25, exposed_temperature)
 
@@ -50,6 +52,7 @@
 	light_range = LIGHT_RANGE_FIRE
 	light_color = LIGHT_COLOR_FIRE
 	blend_mode = BLEND_ADD
+	light_color = LIGHT_COLOR_FIRE
 
 	var/volume = 125
 	var/temperature = FIRE_MINIMUM_TEMPERATURE_TO_EXIST
@@ -171,12 +174,8 @@
 		qdel(src)
 		return
 
-	if(!location.air || (INSUFFICIENT(/datum/gas/plasma) && INSUFFICIENT(/datum/gas/tritium)) || INSUFFICIENT(/datum/gas/oxygen))
-		qdel(src)
-		return
-
-	//Not enough to burn
-	if(((!location.air.gases[/datum/gas/plasma] || location.air.gases[/datum/gas/plasma][MOLES] < 0.5) && (!location.air.gases[/datum/gas/tritium] || location.air.gases[/datum/gas/tritium][MOLES] < 0.5)) || location.air.gases[/datum/gas/oxygen][MOLES] < 0.5)
+	//Not enough / nothing to burn
+	if(!location.air || (INSUFFICIENT(/datum/gas/plasma) && INSUFFICIENT(/datum/gas/tritium) && INSUFFICIENT(/datum/gas/hydrogen)) || INSUFFICIENT(/datum/gas/oxygen))
 		qdel(src)
 		return
 

@@ -37,6 +37,7 @@
 #define AIRLOCK_DAMAGE_DEFLECTION_N  21  // Normal airlock damage deflection
 #define AIRLOCK_DAMAGE_DEFLECTION_R  30  // Reinforced airlock damage deflection
 
+#define DOOR_CLOSE_WAIT 60 /// Time before a door closes, if not overridden
 /obj/machinery/door/airlock
 	name = "airlock"
 	icon = 'icons/obj/doors/airlocks/station/public.dmi'
@@ -67,7 +68,7 @@
 	var/obj/machinery/door/airlock/closeOther
 	var/justzap = FALSE
 	var/obj/item/electronics/airlock/electronics
-	var/shockCooldown = FALSE //Prevents multiple shocks from happening
+	COOLDOWN_DECLARE(shockCooldown)
 	var/obj/item/note //Any papers pinned to the airlock
 	var/detonated = FALSE
 	var/abandoned = FALSE
@@ -86,18 +87,17 @@
 	var/obj/machinery/door/airlock/cyclelinkedairlock
 	var/shuttledocked = 0
 	var/delayed_close_requested = FALSE // TRUE means the door will automatically close the next time it's opened.
-
 	var/air_tight = FALSE	//TRUE means density will be set as soon as the door begins to close
 	var/prying_so_hard = FALSE
 
-	rad_flags = RAD_PROTECT_CONTENTS | RAD_NO_CONTAMINATE
+	flags_1 = RAD_PROTECT_CONTENTS_1 | RAD_NO_CONTAMINATE_1
 	rad_insulation = RAD_MEDIUM_INSULATION
 
 	var/static/list/airlock_overlays = list()
 
 /obj/machinery/door/airlock/Initialize()
 	. = ..()
-	wires = new /datum/wires/airlock(src)
+	wires = set_wires()
 	if(frequency)
 		set_frequency(frequency)
 
@@ -188,7 +188,7 @@
 /obj/machinery/door/airlock/vv_edit_var(var_name)
 	. = ..()
 	switch (var_name)
-		if ("cyclelinkeddir")
+		if (NAMEOF(src, cyclelinkeddir))
 			cyclelinkairlock()
 
 /obj/machinery/door/airlock/check_access_ntnet(datum/netdata/data)
@@ -291,7 +291,7 @@
 			cyclelinkedairlock.cyclelinkedairlock = null
 		cyclelinkedairlock = null
 	if(id_tag)
-		for(var/obj/machinery/doorButtons/D in GLOB.machines)
+		for(var/obj/machinery/door_buttons/D in GLOB.machines)
 			D.removeMe(src)
 	QDEL_NULL(note)
 	for(var/datum/atom_hud/data/diagnostic/diag_hud in GLOB.huds)
@@ -404,14 +404,14 @@
 /obj/machinery/door/airlock/proc/shock(mob/living/user, prb)
 	if(!istype(user) || !hasPower())		// unpowered, no shock
 		return FALSE
-	if(shockCooldown > world.time)
+	if(!COOLDOWN_FINISHED(src, shockCooldown))
 		return FALSE	//Already shocked someone recently?
 	if(!prob(prb))
 		return FALSE //you lucked out, no shock for you
 	do_sparks(5, TRUE, src)
 	var/check_range = TRUE
 	if(electrocute_mob(user, get_area(src), src, 1, check_range))
-		shockCooldown = world.time + 10
+		COOLDOWN_START(src, shockCooldown, 1 SECONDS)
 		return TRUE
 	else
 		return FALSE
@@ -431,7 +431,6 @@
 		if(AIRLOCK_DENY, AIRLOCK_OPENING, AIRLOCK_CLOSING, AIRLOCK_EMAG)
 			icon_state = "nonexistenticonstate" //MADNESS
 	set_airlock_overlays(state)
-	SSdemo.mark_dirty(src)
 
 /obj/machinery/door/airlock/proc/set_airlock_overlays(state)
 	var/mutable_appearance/frame_overlay
@@ -652,7 +651,7 @@
 		else
 			. += "It looks very robust."
 
-	if(issilicon(user) && (!machine_stat & BROKEN))
+	if(issilicon(user) && !(machine_stat & BROKEN))
 		. += "<span class='notice'>Shift-click [src] to [ density ? "open" : "close"] it.</span>"
 		. += "<span class='notice'>Ctrl-click [src] to [ locked ? "raise" : "drop"] its bolts.</span>"
 		. += "<span class='notice'>Alt-click [src] to [ secondsElectrified ? "un-electrify" : "permanently electrify"] it.</span>"
@@ -733,7 +732,7 @@
 	. = ..()
 	if(.)
 		return
-	if(!(issilicon(user) || IsAdminGhost(user)))
+	if(!(issilicon(user) || isAdminGhostAI(user)))
 		if(isElectrified())
 			if(shock(user, 100))
 				return
@@ -776,7 +775,7 @@
 	// Otherwise it will runtime with this kind of error: null.Topic()
 	if(!nowindow)
 		..()
-	if(!usr.canUseTopic(src) && !IsAdminGhost(usr))
+	if(!usr.canUseTopic(src) && !isAdminGhostAI(usr))
 		return
 	add_fingerprint(usr)
 
@@ -791,7 +790,7 @@
 
 
 /obj/machinery/door/airlock/attackby(obj/item/C, mob/user, params)
-	if(!issilicon(user) && !IsAdminGhost(user))
+	if(!issilicon(user) && !isAdminGhostAI(user))
 		if(isElectrified())
 			if(shock(user, 75))
 				return
@@ -1078,7 +1077,7 @@
 	if(safe)
 		for(var/atom/movable/M in get_turf(src))
 			if(M.density && M != src) //something is blocking the door
-				autoclose_in(60)
+				autoclose_in(DOOR_CLOSE_WAIT)
 				return
 
 	if(forced < 2)
@@ -1091,7 +1090,7 @@
 
 	var/obj/structure/window/killthis = (locate(/obj/structure/window) in get_turf(src))
 	if(killthis)
-		killthis.ex_act(EXPLODE_HEAVY)//Smashin windows
+		SSexplosions.medobj += killthis
 
 	operating = TRUE
 	update_icon(AIRLOCK_CLOSING, 1)
@@ -1138,7 +1137,7 @@
 		return
 
 	var/airlock_type = painter.available_paint_jobs["[current_paintjob]"] // get the airlock type path associated with the airlock name the user just chose
-	var/obj/machinery/door/airlock/airlock = new airlock_type // we need to create an new instance of the airlock and assembly to read vars from them
+	var/obj/machinery/door/airlock/airlock = new airlock_type // we need to create a new instance of the airlock and assembly to read vars from them
 	var/obj/structure/door_assembly/assembly = new airlock.assemblytype
 
 	if(airlock_material == "glass" && assembly.noglass) // prevents painting glass airlocks with a paint job that doesn't have a glass version, such as the freezer
@@ -1159,8 +1158,10 @@
 //Airlock is passable if it is open (!density), bot has access, and is not bolted shut or powered off)
 	return !density || (check_access(ID) && !locked && hasPower())
 
-/obj/machinery/door/airlock/emag_act(mob/user)
+/obj/machinery/door/airlock/emag_act(mob/user, obj/item/card/emag/doorjack/D)
 	if(!operating && density && hasPower() && !(obj_flags & EMAGGED))
+		if(istype(D, /obj/item/card/emag/doorjack))
+			D.use_charge(user)
 		operating = TRUE
 		update_icon(AIRLOCK_EMAG, 1)
 		sleep(6)
@@ -1247,6 +1248,8 @@
 		add_hiddenprint(user)
 
 /obj/machinery/door/airlock/take_damage(damage_amount, damage_type = BRUTE, damage_flag = 0, sound_effect = 1, attack_dir)
+	if((damage_amount >= obj_integrity) && (damage_flag == "bomb"))
+		flags_1 |= NODECONSTRUCT_1  //If an explosive took us out, don't drop the assembly
 	. = ..()
 	if(obj_integrity < (0.75 * max_integrity))
 		update_icon()
@@ -1261,7 +1264,7 @@
 			A = new /obj/structure/door_assembly(loc)
 			//If you come across a null assemblytype, it will produce the default assembly instead of disintegrating.
 		A.heat_proof_finished = heat_proof //tracks whether there's rglass in
-		A.setAnchored(TRUE)
+		A.set_anchored(TRUE)
 		A.glass = glass
 		A.state = AIRLOCK_ASSEMBLY_NEEDS_ELECTRONICS
 		A.created_name = name
@@ -1319,11 +1322,10 @@
 	else if(istype(note, /obj/item/photo))
 		return "photo"
 
-/obj/machinery/door/airlock/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = FALSE, \
-													datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
-	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+/obj/machinery/door/airlock/ui_interact(mob/user, datum/tgui/ui)
+	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, ui_key, "ai_airlock", name, 500, 390, master_ui, state)
+		ui = new(user, src, "AiAirlock", name)
 		ui.open()
 	return TRUE
 
@@ -1416,7 +1418,7 @@
 			. = TRUE
 
 /obj/machinery/door/airlock/proc/user_allowed(mob/user)
-	return (issilicon(user) && canAIControl(user)) || IsAdminGhost(user)
+	return (issilicon(user) && canAIControl(user)) || isAdminGhostAI(user)
 
 /obj/machinery/door/airlock/proc/shock_restore(mob/user)
 	if(!user_allowed(user))
@@ -1476,6 +1478,16 @@
 	else
 		open()
 
+/**
+  *	Generates the airlock's wire layout based on the current area the airlock resides in.
+  *
+  * Returns a new /datum/wires/ with the appropriate wire layout based on the airlock_wires
+  * of the area the airlock is in.
+  */
+/obj/machinery/door/airlock/proc/set_wires()
+	var/area/source_area = get_area(src)
+	return new source_area.airlock_wires(src)
+
 #undef AIRLOCK_CLOSED
 #undef AIRLOCK_CLOSING
 #undef AIRLOCK_OPEN
@@ -1495,3 +1507,5 @@
 #undef AIRLOCK_INTEGRITY_MULTIPLIER
 #undef AIRLOCK_DAMAGE_DEFLECTION_N
 #undef AIRLOCK_DAMAGE_DEFLECTION_R
+
+#undef DOOR_CLOSE_WAIT

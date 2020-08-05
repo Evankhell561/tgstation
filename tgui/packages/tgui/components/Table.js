@@ -1,5 +1,11 @@
+/**
+ * @file
+ * @copyright 2020 Aleksej Komarov
+ * @license MIT
+ */
+
 import { classes, pureComponentHooks } from 'common/react';
-import { Box, computeBoxClassName, computeBoxProps } from './Box';
+import { computeBoxClassName, computeBoxProps } from './Box';
 
 export const Table = props => {
   const {
@@ -37,6 +43,7 @@ export const TableRow = props => {
       className={classes([
         'Table__row',
         header && 'Table__row--header',
+        className,
         computeBoxClassName(props),
       ])}
       {...computeBoxProps(rest)} />
@@ -58,6 +65,7 @@ export const TableCell = props => {
         'Table__cell',
         collapsing && 'Table__cell--collapsing',
         header && 'Table__cell--header',
+        className,
         computeBoxClassName(props),
       ])}
       {...computeBoxProps(rest)} />

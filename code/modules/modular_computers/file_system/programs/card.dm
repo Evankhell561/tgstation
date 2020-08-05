@@ -14,9 +14,7 @@
 	transfer_access = ACCESS_HEADS
 	requires_ntnet = 0
 	size = 8
-	tgui_id = "ntos_card"
-	ui_x = 450
-	ui_y = 520
+	tgui_id = "NtosCard"
 
 	var/is_centcom = FALSE
 	var/minor = FALSE

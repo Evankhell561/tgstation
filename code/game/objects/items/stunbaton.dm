@@ -3,7 +3,8 @@
 	desc = "A stun baton for incapacitating people with."
 
 	icon_state = "stunbaton"
-	item_state = "baton"
+	inhand_icon_state = "baton"
+	worn_icon_state = "baton"
 	lefthand_file = 'icons/mob/inhands/equipment/security_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/equipment/security_righthand.dmi'
 
@@ -239,10 +240,6 @@
 
 	playsound(src, stun_sound, 50, TRUE, -1)
 
-	if(ishuman(L))
-		var/mob/living/carbon/human/H = L
-		H.forcesay(GLOB.hit_appends)
-
 	attack_cooldown_check = world.time + attack_cooldown
 
 	ADD_TRAIT(L, TRAIT_IWASBATONED, user)
@@ -279,7 +276,8 @@
 	name = "stunprod"
 	desc = "An improvised stun baton."
 	icon_state = "stunprod"
-	item_state = "prod"
+	inhand_icon_state = "prod"
+	worn_icon_state = null
 	lefthand_file = 'icons/mob/inhands/weapons/melee_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/weapons/melee_righthand.dmi'
 	w_class = WEIGHT_CLASS_BULKY
@@ -310,7 +308,7 @@
 	desc = "A device invented in 2486 for the great Space Emu War by the confederacy of Australicus, these high-tech boomerangs also work exceptionally well at stunning crewmembers. Just be careful to catch it when thrown!"
 	throw_speed = 1
 	icon_state = "boomerang"
-	item_state = "boomerang"
+	inhand_icon_state = "boomerang"
 	force = 5
 	throwforce = 5
 	throw_range = 5
@@ -319,7 +317,7 @@
 	convertible = FALSE
 	custom_materials = list(/datum/material/iron = 10000, /datum/material/glass = 4000, /datum/material/silver = 10000, /datum/material/gold = 2000)
 
-/obj/item/melee/baton/boomerang/throw_at(atom/target, range, speed, mob/thrower, spin=1, diagonals_first = 0, datum/callback/callback, force, gentle = FALSE)
+/obj/item/melee/baton/boomerang/throw_at(atom/target, range, speed, mob/thrower, spin=1, diagonals_first = 0, datum/callback/callback, force, gentle = FALSE, quickstart = TRUE)
 	if(turned_on)
 		if(ishuman(thrower))
 			var/mob/living/carbon/human/H = thrower

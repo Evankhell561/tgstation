@@ -3,13 +3,13 @@
 	name = "flash"
 	desc = "A powerful and versatile flashbulb device, with applications ranging from disorienting attackers to acting as visual receptors in robot production."
 	icon_state = "flash"
-	item_state = "flashtool"
+	inhand_icon_state = "flashtool"
 	lefthand_file = 'icons/mob/inhands/equipment/security_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/equipment/security_righthand.dmi'
 	throwforce = 0
 	w_class = WEIGHT_CLASS_TINY
 	custom_materials = list(/datum/material/iron = 300, /datum/material/glass = 300)
-	light_color = LIGHT_COLOR_WHITE
+	light_color = COLOR_WHITE
 	light_power = FLASH_LIGHT_POWER
 	var/flashing_overlay = "flash-f"
 	var/times_used = 0 //Number of times it's been used.
@@ -218,7 +218,7 @@
 	desc = "If you see this, you're not likely to remember it any time soon."
 	icon = 'icons/obj/device.dmi'
 	icon_state = "memorizer"
-	item_state = "nullrod"
+	inhand_icon_state = "nullrod"
 
 /obj/item/assembly/flash/handheld //this is now the regular pocket flashes
 

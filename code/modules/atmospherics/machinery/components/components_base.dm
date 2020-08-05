@@ -72,7 +72,7 @@
 // Pipenet stuff; housekeeping
 
 /obj/machinery/atmospherics/components/nullifyNode(i)
-	if(nodes[i])
+	if(parents[i])
 		nullifyPipenet(parents[i])
 		QDEL_NULL(airs[i])
 	..()
@@ -156,9 +156,9 @@
 		var/datum/pipeline/parent = parents[i]
 		if(!parent)
 			WARNING("Component is missing a pipenet! Rebuilding...")
-			build_network()
-			parent = parents[i]
-		parent.update = 1
+			SSair.add_to_rebuild_queue(src)
+		else
+			parent.update = 1
 
 /obj/machinery/atmospherics/components/returnPipenets()
 	. = list()
