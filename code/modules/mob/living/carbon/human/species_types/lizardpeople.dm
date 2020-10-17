@@ -17,7 +17,7 @@
 	attack_verb = "slash"
 	attack_sound = 'sound/weapons/slash.ogg'
 	miss_sound = 'sound/weapons/slashmiss.ogg'
-	meat = /obj/item/reagent_containers/food/snacks/meat/slab/human/mutant/lizard
+	meat = /obj/item/food/meat/slab/human/mutant/lizard
 	skinned_type = /obj/item/stack/sheet/animalhide/lizard
 	exotic_bloodtype = "L"
 	disliked_food = GRAIN | DAIRY
@@ -29,6 +29,8 @@
 	// Lizards are coldblooded and can stand a greater temperature range than humans
 	bodytemp_heat_damage_limit = (BODYTEMP_HEAT_DAMAGE_LIMIT + 20) // This puts lizards 10 above lavaland max heat for ash lizards.
 	bodytemp_cold_damage_limit = (BODYTEMP_COLD_DAMAGE_LIMIT - 10)
+
+	ass_image = 'icons/ass/asslizard.png'
 
 /// Lizards are cold blooded and do not stabilize body temperature naturally
 /datum/species/lizard/natural_bodytemperature_stabilization(datum/gas_mixture/environment, mob/living/carbon/human/H)
@@ -76,6 +78,31 @@
 		mutant_bodyparts |= "tail_lizard"
 		mutant_bodyparts |= "spines"
 	H.update_body()
+
+/datum/species/lizard/on_species_gain(mob/living/carbon/C, datum/species/old_species, pref_load)
+	var/real_tail_type = C.dna.features["tail_lizard"]
+	var/real_spines = C.dna.features["spines"]
+
+	. = ..()
+
+	// Special handler for loading preferences. If we're doing it from a preference load, we'll want
+	// to make sure we give the appropriate lizard tail AFTER we call the parent proc, as the parent
+	// proc will overwrite the lizard tail. Species code at its finest.
+	if(pref_load)
+		C.dna.features["tail_lizard"] = real_tail_type
+		C.dna.features["spines"] = real_spines
+
+		var/obj/item/organ/tail/lizard/new_tail = new /obj/item/organ/tail/lizard()
+
+		new_tail.tail_type = C.dna.features["tail_lizard"]
+		C.dna.species.mutant_bodyparts |= "tail_lizard"
+
+		new_tail.spines = C.dna.features["spines"]
+		C.dna.species.mutant_bodyparts |= "spines"
+
+		// organ.Insert will qdel any existing organs in the same slot, so
+		// we don't need to manage that.
+		new_tail.Insert(C, TRUE, FALSE)
 
 /*
  Lizard subspecies: ASHWALKERS

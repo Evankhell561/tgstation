@@ -169,6 +169,7 @@
 	products = list(/obj/item/clothing/accessory/pocketprotector = 3,
 					/obj/item/storage/backpack/science = 3,
 					/obj/item/storage/backpack/satchel/tox = 3,
+					/obj/item/clothing/head/beret/science = 3,
 					/obj/item/clothing/suit/hooded/wintercoat/science = 3,
 					/obj/item/clothing/under/rank/rnd/scientist = 3,
 					/obj/item/clothing/under/rank/rnd/scientist/skirt = 3,
@@ -370,7 +371,7 @@
 					/obj/item/clothing/head/taqiyahred = 3,
 					/obj/item/clothing/suit/chaplainsuit/monkrobeeast = 1,
 					/obj/item/clothing/head/beanie/rasta = 1)
-	contraband = list(/obj/item/toy/plush/plushvar = 1,
+	contraband = list(/obj/item/toy/plush/ratplush = 1,
 					/obj/item/toy/plush/narplush = 1,
 					/obj/item/clothing/head/medievaljewhat = 3,
 					/obj/item/clothing/suit/chaplainsuit/clownpriest = 1,

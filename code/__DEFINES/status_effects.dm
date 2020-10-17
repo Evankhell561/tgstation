@@ -88,6 +88,11 @@
 #define STATUS_EFFECT_AMOK /datum/status_effect/amok //Makes the target automatically strike out at adjecent non-heretics.
 
 #define STATUS_EFFECT_CLOUDSTRUCK /datum/status_effect/cloudstruck //blinds and applies an overlay.
+
+/// Makes the mob move randomly.
+/// Read the documentation for /datum/status_effect/confusion for more information.
+#define STATUS_EFFECT_CONFUSION /datum/status_effect/confusion
+
 /////////////
 // NEUTRAL //
 /////////////
@@ -113,6 +118,8 @@
 // Grouped effect sources, see also code/__DEFINES/traits.dm
 
 #define STASIS_MACHINE_EFFECT "stasis_machine"
+
+#define STASIS_ASCENSION_EFFECT "heretic_ascension"
 
 // Stasis helpers
 

@@ -6,7 +6,7 @@ GLOBAL_LIST_EMPTY(request_list)
   */
 /obj/machinery/bounty_board
 	name = "bounty board"
-	desc = "Alows you to place requests for goods and services across the station, as well as pay those who actually did it."
+	desc = "Allows you to place requests for goods and services across the station, as well as pay those who actually did it."
 	icon = 'icons/obj/terminals.dmi'
 	icon_state = "request_kiosk"
 	light_color = LIGHT_COLOR_GREEN
@@ -84,8 +84,10 @@ GLOBAL_LIST_EMPTY(request_list)
 	return data
 
 /obj/machinery/bounty_board/ui_act(action, list/params)
-	if(..())
+	. = ..()
+	if(.)
 		return
+
 	var/current_ref_num = params["request"]
 	var/current_app_num = params["applicant"]
 	var/datum/bank_account/request_target
@@ -178,7 +180,7 @@ GLOBAL_LIST_EMPTY(request_list)
 	///the account of the request fulfiller.
 	var/list/applicants = list()
 
-/datum/station_request/New(var/owned, var/newvalue, var/newdescription, var/reqnum, var/own_account)
+/datum/station_request/New(owned, newvalue, newdescription, reqnum, own_account)
 	. = ..()
 	owner = owned
 	value = newvalue
